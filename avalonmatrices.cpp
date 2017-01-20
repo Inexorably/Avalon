@@ -107,3 +107,48 @@ void assignCodeNumbers(std::vector<element> &elements, std::vector<node> &nodes)
 
 
 }
+
+//Used in assignSubelementAngles function.
+//Returns the angle beta as a long double between nodes a and b.
+long double determineBeta(node a, node b){
+    /*
+     *  angle = acos(dotProduct(Va.normalize(), Vb.normalize()));
+        cross = crossProduct(Va, Vb);
+        if (dotProduct(Vn, cross) < 0) { // Or > 0
+            angle = -angle;
+    }*/
+    //Placeholder return function.
+    return -1;
+}
+//Assigns the angles (beta) to each subelement.  Takes the elements vector as input and cycles through.
+//Returns true if ran with no problems.
+//Note: This could be 2d only, confirm with professor.
+//Note: add beta to display.
+subelement assignSubelementAngles(std::vector<element> &elements){
+    //We begin with the elements vector.  We now cycle through to hit the subelements.
+    for (size_t i = 0; i < elements.size(); i++){
+        //We are now at the subelement level.
+        for (size_t j = 0; j < elements[i].subelements.size(); j++){
+            //We are now at the nodal level of the subelements.  Note that each subelement should have two nodes.
+            //We no longer need to loop and can do straight logic.
+            if (elements[i].subelements[j].nodes.size() != 2){
+                return elements[i].subelements[j];
+            }
+            //If we get here we have two nodes in our subelement.  Defaults to order that nodes are stored in the node vector of the subelement.
+            elements[i].subelements[j].beta = determineBeta(elements[i].subelements[j].nodes[0], elements[i].subelements[j].nodes[1]);
+        }
+    }
+
+    subelement tempSubelement;
+    tempSubelement.name = "NOERROR";
+    return tempSubelement;
+}
+
+
+
+
+
+
+
+
+

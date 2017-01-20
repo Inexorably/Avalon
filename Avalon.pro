@@ -26,14 +26,31 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\Armadillo
-INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\Armadillo\include\armadillo_bits
-INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib
-INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\Armadillo\include
+# Desktop
+# INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\Armadillo
+# INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\Armadillo\include\armadillo_bits
+# INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib
+# INCLUDEPATH += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\Armadillo\include
 
-LIBS += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\lapack_win64_MT.lib
-LIBS += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\libopenblas.a
+#Dekstop
+# LIBS += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\lapack_win64_MT.lib
+# LIBS += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\libopenblas.a
 # LIBS += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\lapack_win64_MT.dll
+
+#Laptop
+INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib\Armadillo
+INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib\Armadillo\include\armadillo_bits
+INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib
+INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib\Armadillo\include
+
+
+
+#Laptop
+LIBS += C:\Qtgg\Tools\QtCreator\lib\lapack_win64_MT.lib
+LIBS += C:\Qtgg\Tools\QtCreator\lib\libopenblas.a
+# LIBS += C:\Qtgg\Tools\QtCreator\lib\lapack_win64_MT.dll
+
+
 
 SOURCES += main.cpp\
         mainwindow.cpp \

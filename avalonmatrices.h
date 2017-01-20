@@ -14,6 +14,14 @@ void printInfoToDebug(arma::mat m);
 //Cycle through nodes and assign the codeNumbers.  Then cycle through elements[i].nodes and apply the nodes created previously.
 void assignCodeNumbers(std::vector<element> &elements, std::vector<node> &nodes);
 
+//Assigns the angles (beta) to each subelement.  Takes the elements vector as input and cycles through.
+//Returns the subelement that threw a problem.  If subelement has name "NOERRORS", no errors were had.
+subelement assignSubelementAngles(std::vector<element> &elements);
+
+//Used in assignSubelementAngles function.
+//Returns the angle beta as a long double between nodes a and b.
+long double determineBeta(node a, node b);
+
 //Todo :
     //Make beta (angle) a member of each subelement.  This is determined as the angle between its two nodes.
 

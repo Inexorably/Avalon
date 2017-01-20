@@ -62,6 +62,10 @@ struct subelement{
     std::string name;
     std::vector<node> nodes;
 
+    //This is created in the processing function from the nodes vector of the respective subelement.  This determines the angle for creation of the
+    //local stiffness matrix.
+    long double beta;
+
     /*
      In future may have to make extendable subelement class.  Reminder / note:
      std::vector<subelement> subelements;

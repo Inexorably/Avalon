@@ -814,8 +814,24 @@ void MainWindow::on_displayElementsButton_clicked(){
 //Using to test the matrix functions right now.  Also if they work with qDebug or not.
 void MainWindow::on_processButton_clicked(){
     //mTest();
-
+    ui->processButton->setEnabled(false);
+    ui->errorTextBrowser->appendPlainText("File processing started.");
     assignCodeNumbers(elements, nodes);
 
+    //Check if an error was thrown.
+    //Note: Make it so that NOERROR is an invalid name.
+    if (assignSubelementAngles(elements).name != "NOERROR"){
+        //Can change name later.
+        std::string tempS = "Error in assignSubelementsAngles function with subelement with name ";
+        tempS += assignSubelementAngles(elements).name;
+        tempS += ": number of attached nodes does not equal two.";
+        errorInLoadFileButton(tempS);
+        ui->errorTextBrowser->appendPlainText("Processing exited without completing.");
+        ui->processButton->setEnabled(true);
+    }
+
+
+    ui->errorTextBrowser->appendPlainText("File processing completed.");
+    ui->processButton->setEnabled(true);
     processingComplete = true;
 }
