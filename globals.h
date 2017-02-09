@@ -5,7 +5,12 @@
 
 #include <vector>
 #include <string>
+#include <armadillo>
 
+//The global stiffness matrix.
+extern arma::mat K;
+
+//Debug option for outputting with qDebug().
 extern bool globalDebugLoadButtonSectionTags;
 
 //This will store the elements read from the following fstream loop.

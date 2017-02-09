@@ -10,6 +10,7 @@
 #include <QFileDialog>
 #include <QString>
 #include <QDebug>
+#include <armadillo>
 
 #include <typeinfo>
 
@@ -21,9 +22,13 @@
 #include <vector>
 #include <sstream>
 
+#include "utilities.h"
+
 /*////////////////////////////////////////*/
 /*Globals defined in globals.h, should all be externed.*/
 //This will store the elements read from the following fstream loop.
+bool displayMemberForces = false;
+arma::mat K;
 std::vector<element> elements;
 std::vector<step> steps;
 std::vector<material> materials;
@@ -41,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //We have created the main window.  We now initalize the values of needed widgets.
     ui->errorTextBrowser->appendPlainText("Please load a file.");
     ui->progressBar->setValue(0);
+    //test();
 }
 
 MainWindow::~MainWindow(){
@@ -577,13 +583,24 @@ void MainWindow::on_loadFileButton_clicked(){
             //rdu
             for (size_t r = 0; r < elements.size(); r++){
                 for (size_t d = 0; d < elements[r].subelements.size(); d++){
+                    //Goes from 0 to 1.
                     for (size_t u = 0; u < elements[r].subelements[d].nodes.size(); u++){
                         if (elements[r].subelements[d].nodes[u].name == split[0]){
+                            //qDebug()<<"Applying node " << QString::fromStdString(split[0]);
+                            //qDebug()<<"value of u: "<<u;
+                            //qDebug()<<"Value: " <<QString::fromStdString((split[3]));
                             for (double kai = std::stod(split[1]); kai <= std::stod(split[2]); kai++){
                                 degreeOfFreedom tempDegree;
                                 tempDegree.identifier = kai;
-                                tempDegree.value = std::stoi(split[2]);
+                                tempDegree.value = std::stoi(split[3]);
+                                //qDebug()<<"Pushing back onto node "<<QString::fromStdString(elements[r].subelements[d].nodes[u].name);
                                 elements[r].subelements[d].nodes[u].degreesOfFreedom.push_back(tempDegree);
+                            }
+                            for (size_t soka = 0; soka < nodes.size(); soka++){
+                                if (nodes[soka].name == split[0]){
+                                    nodes[soka].degreesOfFreedom = elements[r].subelements[d].nodes[u].degreesOfFreedom;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -612,6 +629,7 @@ void MainWindow::on_loadFileButton_clicked(){
             force tempF;
             tempF.direction = axisToDirectionVector(std::stod(split[1]));
             tempF.magnitude = std::stod(split[2]);
+            //Update the elements vector.
             for (size_t r = 0; r < elements.size(); r++){
                 for (size_t d = 0; d < elements[r].subelements.size(); d++){
                     for (size_t u = 0; u < elements[r].subelements[d].nodes.size(); u++){
@@ -619,6 +637,12 @@ void MainWindow::on_loadFileButton_clicked(){
                             elements[r].subelements[d].nodes[u].forces.push_back(tempF);
                         }
                     }
+                }
+            }
+            //Update the nodes vector (rip).
+            for (size_t r = 0; r < nodes.size(); r++){
+                if (nodes[r].name == split[0]){
+                    nodes[r].forces.push_back(tempF);
                 }
             }
             //The cload on this line has been applied to the nodes.
@@ -688,6 +712,25 @@ void MainWindow::on_loadFileButton_clicked(){
     int value;
     */
 
+//Prints an arma::mat matrix to our display console.
+void MainWindow::printArmaMat(arma::mat M, QString matrixName){
+    QString row;
+    ui->errorTextBrowser->appendPlainText("");
+    ui->errorTextBrowser->appendPlainText(matrixName+":");
+    for (size_t i = 0; i < M.n_rows; i++){
+        row.clear();
+        for (size_t j = 0; j < M.n_cols; j++){
+            //Returns a double.
+            row += QString::fromStdString(std::to_string(M(i,j)));
+            if (j == M.n_cols-1)
+                ui->errorTextBrowser->appendPlainText(row);
+            else
+                row += ", ";
+        }
+    }
+    ui->errorTextBrowser->appendPlainText("");
+}
+
 //Prints information about the elements so we can confirm that the stuff is stored correctly.
 void MainWindow::on_displayElementsButton_clicked(){
     ui->displayElementsButton->setEnabled(false);
@@ -733,9 +776,16 @@ void MainWindow::on_displayElementsButton_clicked(){
             ui->errorTextBrowser->appendPlainText(tempS);
             tempS = "subelement name: " + QString::fromStdString(elements[i].subelements[j].name);
             ui->errorTextBrowser->appendPlainText(tempS);
+            tempS = "Length: " + QString::fromStdString(std::to_string(elements[i].subelements[j].length()));
+            ui->errorTextBrowser->appendPlainText(tempS);
             tempS = "Number of nodes: " + QString::fromStdString(std::to_string(elements[i].subelements[j].nodes.size()));
             ui->errorTextBrowser->appendPlainText(tempS);
-
+            //Member stiffness matrix.
+            if (processingComplete){
+                printArmaMat(elements[i].subelements[j].K, "Member Stiffness Matrix K (created post processing): ");
+                if (displayMemberForces)
+                    printArmaMat(elements[i].subelements[j].basicForces, "Basic Forces Matrix (created post processing): ");
+            }
             /*Node Stuff============================================================================================*/
             /*std::string name;
             long double x;
@@ -759,6 +809,13 @@ void MainWindow::on_displayElementsButton_clicked(){
                     tempS += ", codeY: " + QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].codeY));
                     tempS += ", codeZ: " + QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].codeZ));
                     ui->errorTextBrowser->appendPlainText(tempS);
+                    tempS = "Displacements [x y z] (note: only created after processing): ";
+                    tempS += QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].displacements[0]));
+                    tempS += ", ";
+                    tempS += QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].displacements[1]));
+                    tempS += ", ";
+                    tempS += QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].displacements[2]));
+                    ui->errorTextBrowser->appendPlainText(tempS);
                 }
 
 
@@ -780,8 +837,7 @@ void MainWindow::on_displayElementsButton_clicked(){
                 //ijk xyz
                 //force
                 for (size_t x = 0; x < elements[i].subelements[j].nodes[k].forces.size(); x++){
-                    tempS = "force " + QString::fromStdString(std::to_string(x));
-                    tempS += "- magnitude: " + QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].forces[x].magnitude));
+                    tempS = "force magnitude: " + QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].forces[x].magnitude));
                     tempS += ", direction <x,y,z>: <";
                     tempS += QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].forces[x].direction.x)) + ", ";
                     tempS += QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].forces[x].direction.y)) + ", ";
@@ -796,15 +852,27 @@ void MainWindow::on_displayElementsButton_clicked(){
                     tempS += ", value: " + QString::fromStdString(std::to_string(elements[i].subelements[j].nodes[k].degreesOfFreedom[x].value));
                     ui->errorTextBrowser->appendPlainText(tempS);
                 }
-
             }
-
-
-
         }
-
-
     }
+    if (processingComplete){
+        QString row;
+        ui->errorTextBrowser->appendPlainText("");
+        ui->errorTextBrowser->appendPlainText("Global Stiffness Matrix K:");
+        for (size_t i = 0; i < K.n_rows; i++){
+            row.clear();
+            for (size_t j = 0; j < K.n_cols; j++){
+                //Returns a double.
+                row += QString::fromStdString(std::to_string(K(i,j)));
+                if (j == K.n_cols-1)
+                    ui->errorTextBrowser->appendPlainText(row);
+                else
+                    row += ", ";
+            }
+        }
+        ui->errorTextBrowser->appendPlainText("");
+    }
+
     ui->errorTextBrowser->appendPlainText("");
     ui->progressLabel->setText("No Current Process Running.");
     ui->displayElementsButton->setEnabled(true);
@@ -814,24 +882,112 @@ void MainWindow::on_displayElementsButton_clicked(){
 //Using to test the matrix functions right now.  Also if they work with qDebug or not.
 void MainWindow::on_processButton_clicked(){
     //mTest();
+    ui->progressBar->setValue(0);
     ui->processButton->setEnabled(false);
     ui->errorTextBrowser->appendPlainText("File processing started.");
-    assignCodeNumbers(elements, nodes);
+    /*======================================================*/
 
-    //Check if an error was thrown.
-    //Note: Make it so that NOERROR is an invalid name.
-    if (assignSubelementAngles(elements).name != "NOERROR"){
-        //Can change name later.
-        std::string tempS = "Error in assignSubelementsAngles function with subelement with name ";
-        tempS += assignSubelementAngles(elements).name;
-        tempS += ": number of attached nodes does not equal two.";
-        errorInLoadFileButton(tempS);
-        ui->errorTextBrowser->appendPlainText("Processing exited without completing.");
-        ui->processButton->setEnabled(true);
+    arma::mat Q = assignCodeNumbersAndCreateForceVector(elements, nodes);
+    ui->progressBar->setValue(10);
+    ui->errorTextBrowser->appendPlainText("Force Vector Created.");
+    printArmaMat(Q, "Force Vector Q");
+    int stiffnessSize = Q.n_cols;
+    createMemberStiffnessMatrices(elements);
+    //K is the global stiffness matrix, global variable externed in globals.h.
+    K = createGlobalStiffnessMatrix(elements, nodes, stiffnessSize);
+    ui->progressBar->setValue(30);
+    ui->errorTextBrowser->appendPlainText("Global Stiffness Matrix created.");
+    printArmaMat(K, "Global Stiffness Matrix K");
+    ui->progressBar->setValue(50);
+    arma::mat Qprime = trans(Q);
+    arma::mat D = eigenArmaSolve(K, Qprime);
+    ui->progressBar->setValue(70);
+    ui->errorTextBrowser->appendPlainText("Displacement Matrix created.");
+    printArmaMat(D, "Displacement Matrix D");
+
+    //We now have calculated D.  We now need to apply this information to our nodes in the subelements vector.
+    for (size_t d = 0; d < D.n_rows; d++){
+        for (size_t i = 0; i < elements.size(); i++){
+            for (size_t j = 0; j < elements[i].subelements.size(); j++){
+                for (size_t k = 0; k < elements[i].subelements[j].nodes.size(); k++){
+                    //Matrix D is code 1-end in order.  Index 0 is code 1.
+                    if (d+1 == elements[i].subelements[j].nodes[k].codeX){
+                        elements[i].subelements[j].nodes[k].displacements[0] = D(d,0);
+                        //qDebug()<<D(d,0);
+                        //qDebug()<<elements[i].subelements[j].nodes[k].displacements[0];
+                        continue;
+                    }
+                    if (d+1 == elements[i].subelements[j].nodes[k].codeY){
+                        elements[i].subelements[j].nodes[k].displacements[1] = D(d,0);
+                        //qDebug()<<D(d,0);
+                        //qDebug()<<elements[i].subelements[j].nodes[k].displacements[0];
+                        continue;
+                    }
+                    if (d+1 == elements[i].subelements[j].nodes[k].codeZ){
+                        elements[i].subelements[j].nodes[k].displacements[2] = D(d,0);
+                        //qDebug()<<D(d,0);
+                        //qDebug()<<elements[i].subelements[j].nodes[k].displacements[0];
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    //The displacement matrix D has been properly calculated.
+    if (displayMemberForces){
+        //Now we calculate the basic member forces.
+        for (size_t i = 0; i < elements.size(); i++){
+            ui->errorTextBrowser->appendPlainText("Element: "+QString::fromStdString(elements[i].name));
+            for (size_t j = 0; j < elements[i].subelements.size(); j++){
+                ui->errorTextBrowser->appendPlainText("Subelement: "+QString::fromStdString(elements[i].subelements[j].name));
+                //We are now at the subelement level and can display the individual basic member forces for each subelement.
+                //Note: Need to apply D (create a member displacement vector for each subelement.
+                arma::mat memberDisplacement = arma::zeros(6,1);
+                for (int h = 0; h < 2; h++){
+                    for (int k = 0; k < 3; k++){
+                        memberDisplacement(k,0) = elements[i].subelements[j].nodes[h].displacements[k];
+                    }
+                }
+                /*if (i==1){
+                    qDebug()<<"T";
+                    printInfoToDebug(elements[i].subelements[j].T);
+                    qDebug()<<"K";
+                    printInfoToDebug(elements[i].subelements[j].K);
+                    qDebug()<<"member";
+                    printInfoToDebug(memberDisplacement);
+                }*/
+                elements[i].subelements[j].displacementMatrix = memberDisplacement;
+                arma::mat kprime = arma::ones(2,2);
+                kprime(0, 1) = -1;
+                kprime(1, 0) = -1;
+                //printInfoToDebug(kprime);
+                arma::mat basicForces = (elements[i].subelements[j].T.t()*kprime*elements[i].subelements[j].T)*elements[i].subelements[j].K*memberDisplacement;
+                elements[i].subelements[j].basicForces = basicForces;
+                /*if (i==1){
+                    qDebug()<<"basic forces";
+                    printInfoToDebug(basicForces);
+                }*/
+                printArmaMat(basicForces, "Basic Forces: ");
+            }
+        }
     }
 
 
+
+
+
+    /*======================================================*/
+    ui->progressBar->setValue(100);
     ui->errorTextBrowser->appendPlainText("File processing completed.");
     ui->processButton->setEnabled(true);
     processingComplete = true;
+}
+
+void MainWindow::on_pushButton_clicked(){
+    ui->errorTextBrowser->clear();
+}
+
+void MainWindow::on_checkBox_clicked(){
+    displayMemberForces = !displayMemberForces;
 }

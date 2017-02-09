@@ -7,6 +7,42 @@
 
 #include "globals.h"
 
+#include <Eigen>
+#include <armadillo>
+
+//Using the eigen functions we solve an arma::mat.
+//Ax = B
+arma::mat eigenArmaSolve(arma::mat A, arma::mat B){
+    Eigen::MatrixXd eigenA(A.n_rows, A.n_cols);
+    for (size_t i = 0; i < A.n_rows; i++){
+        for (size_t j = 0; j < A.n_cols; j++){
+            eigenA(i,j) = A(i,j);
+        }
+    }
+    //std::cout << 'a' << std::endl;
+    //std::cout << eigenA << std::endl;
+    Eigen::MatrixXd eigenB(B.n_rows, B.n_cols);
+    for (size_t i = 0; i < B.n_rows; i++){
+        for (size_t j = 0; j < B.n_cols; j++){
+            eigenB(i,j) = B(i,j);
+        }
+    }
+    //std::cout << 'b' << std::endl;
+    //std::cout << eigenB << std::endl;
+    //We have now converted the arma matrices to eigen. LU as square.
+    Eigen::MatrixXd x = eigenA.colPivHouseholderQr().solve(eigenB);
+    arma::mat temp = arma::zeros(B.n_rows, B.n_cols);
+    for (size_t i = 0; i < B.n_rows; i++){
+        for (size_t j = 0; j < B.n_cols; j++){
+            temp(i,j) = x(i,j);
+        }
+    }
+    //std::cout << 'x' << std::endl;
+    //std::cout << x << std::endl;
+    return temp;
+}
+
+
 //Checks if string a begins with string b.
 bool beginsWith(std::string a, std::string b){
     for (size_t t = 0; t < b.size(); t++){

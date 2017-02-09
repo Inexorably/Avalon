@@ -38,17 +38,25 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # LIBS += C:\Qt\Qt5.6.0\Tools\QtCreator\lib\lapack_win64_MT.dll
 
 #Laptop
+#For Armadillo.
 INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib\Armadillo
 INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib\Armadillo\include\armadillo_bits
-INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib
+#INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib
 INCLUDEPATH += C:\Qtgg\Tools\QtCreator\lib\Armadillo\include
+#For reBlas and Lapack.
+INCLUDEPATH += C:\Qtgg\Lapack
+INCLUDEPATH += C:\MinGW\bin
+
+#Libraries suck and don't work.  Eigen.
+INCLUDEPATH += C:\Qtgg\Lapack\EigenTop\eigen-eigen-da9b4e14c255\Eigen
 
 
 
 #Laptop
-LIBS += C:\Qtgg\Tools\QtCreator\lib\lapack_win64_MT.lib
+#LIBS += C:\Qtgg\Tools\QtCreator\lib\lapack_win64_MT.lib
 LIBS += C:\Qtgg\Tools\QtCreator\lib\libopenblas.a
-# LIBS += C:\Qtgg\Tools\QtCreator\lib\lapack_win64_MT.dll
+LIBS += C:\Qtgg\Lapack\libblas.lib
+LIBS += C:\Qtgg\Lapack\liblapack.lib
 
 
 

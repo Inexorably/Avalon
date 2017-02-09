@@ -4,7 +4,10 @@
 #include <armadillo>
 #include <QDebug>
 #include <vector>
+#include <typeinfo>
+#include <QString>
 
+#include "utilities.h"
 #include "elements.h"
 
 void mTest();
@@ -12,27 +15,22 @@ void mTest();
 void printInfoToDebug(arma::mat m);
 
 //Cycle through nodes and assign the codeNumbers.  Then cycle through elements[i].nodes and apply the nodes created previously.
-void assignCodeNumbers(std::vector<element> &elements, std::vector<node> &nodes);
+//Assigns the code numbers and returns the forceVector with order corresponding to the code numbers.
+arma::mat assignCodeNumbersAndCreateForceVector(std::vector<element> &elements, std::vector<node> &nodes);
 
-//Assigns the angles (beta) to each subelement.  Takes the elements vector as input and cycles through.
-//Returns the subelement that threw a problem.  If subelement has name "NOERRORS", no errors were had.
-subelement assignSubelementAngles(std::vector<element> &elements);
+//Cycle through elements and their subelements and create member stiffness matrix K.  Note that we need to have access to both the
+//elements vector and the subelements of those elements (can't just make member function of subelement) because we need access to A and E
+//which are applied on an element level.
+void createMemberStiffnessMatrices(std::vector<element> &elements);
 
-//Used in assignSubelementAngles function.
-//Returns the angle beta as a long double between nodes a and b.
-long double determineBeta(node a, node b);
+//Creates a global stiffness matrix K.
+arma::mat createGlobalStiffnessMatrix(std::vector<element> &elements, const std::vector<node> nodes, int stiffnessSize);
 
+//KD=Q
+//D=K'Q
+
+//Note: 2D only for use of beta.  3d uses cosine angles.
 //Todo :
-    //Make beta (angle) a member of each subelement.  This is determined as the angle between its two nodes.
-
-    //Function for creating member K from each subelement
-    //cycle through elements
-        //cycle through subelements, create K
-        //only need information from that subelement.  Page 22 of https://ccle.ucla.edu/pluginfile.php/1657598/mod_resource/content/0/Trusses.pdf
-
-    //function that takes all K members and returns global K.
-        //Uses element codes, ignores code == 0.   Page 27 of https://ccle.ucla.edu/pluginfile.php/1657598/mod_resource/content/0/Trusses.pdf
-
     //function that returns Q from nodes vector
         //(cycles through all the vectors and returns the force magnitude on each.
         //Account for non existant / empty force vector (means no force).

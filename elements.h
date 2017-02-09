@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <armadillo>
 
 //Initalises to no direction.
 struct directionVector{
@@ -26,6 +27,7 @@ struct material{
 
 struct degreeOfFreedom{
     //1-6.  3d translation and 3d rotation.
+    //translation x y z rotation x y z.
     int identifier;
     int value;
 };
@@ -46,25 +48,42 @@ struct node{
     node(long double x, long double y, long double z);
     //Default constructor
     node();
-
+    //Positive x y and z displacements.
+    long double displacements[3];
     //DOF constraints.  Needs to be initalised.
     std::vector<degreeOfFreedom>degreesOfFreedom;
 
+    //A vector for the forces on the node.
     std::vector<force> forces;
 
     //Prints the debug info to qDebug().
     void printDebugInfo();
-
 };
 
 //A substruct of element, as one element can have different subelements related to nodes.
 struct subelement{
     std::string name;
     std::vector<node> nodes;
+    //Returns the length between the two nodes.
+    long double length();
 
-    //This is created in the processing function from the nodes vector of the respective subelement.  This determines the angle for creation of the
-    //local stiffness matrix.
-    long double beta;
+    //The basic forces vector.
+    arma::mat basicForces;
+
+    arma::mat displacementMatrix;
+
+    //The direction cosines used for extension to 3d.
+    //Making it a return function not a storage for portability and as increased processing time is small (two operations, - and /).
+    long double cx();
+    long double cy();
+    long double cz();
+
+    arma::mat T;
+
+    //The member matrix K is a member of subelement.  Relies on armadillo library.
+    arma::mat K;
+
+    //Repeatedly computing
 
     /*
      In future may have to make extendable subelement class.  Reminder / note:

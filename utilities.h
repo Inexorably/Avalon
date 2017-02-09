@@ -6,7 +6,11 @@
 #include <string>
 #include <vector>
 
+//Solves Ax=B.
+arma::mat eigenArmaSolve(arma::mat A, arma::mat B);
+
 //To prevent dumb errors from misspelling strings hardcoded, use variable names for logic.
+const std::string NOERROR = "NOERROR";
 const std::string NODE = "*NODE";
 const std::string ELEMENT = "*ELEMENT";
 const std::string SOLID_SECTION = "*SOLID SECTION";
